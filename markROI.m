@@ -112,8 +112,9 @@ function loadFile(src,event)
         set(handles.prev_file,'Enable','on')
     end
 
-    images = load([folder_name allfiles(load_this).name]);
-    images = images.images;
+    temp = load([folder_name allfiles(load_this).name]);
+    disp([folder_name allfiles(load_this).name]);
+    images = temp.images;
 
     % determine the number of frames
     nframes = size(images,3);
@@ -121,17 +122,38 @@ function loadFile(src,event)
 
     set(handles.ax1,'XLim',[1 size(images,1)],'YLim',[1 size(images,2)])
 
+    % show pre-existing ROIs is present
+    if any(find(strcmp('control_roi',fieldnames(temp))))
+        control_roi = temp.control_roi;
+    else
+        control_roi = zeros(size(images,2),size(images,2),0);
+    end
+
+    if any(find(strcmp('test_roi',fieldnames(temp))))
+        test_roi = temp.test_roi;
+    else
+        test_roi = zeros(size(images,2),size(images,2),0);
+    end
 
     showFrame;
 
 
 end
 
-function showFrame(src,~)
+function showFrame(~,~)
     this_image = images(:,:,ceil(get(handles.scrubber,'Value')));
+
+    this_image = this_image -  min(min(min(images)));
+    this_image = this_image/( max(max(max(images)))- min(min(min(images))));
+
+    % mask out the control and test rois, if any.
+    this_image(:,:,2) = mean(mean(mean(images))).*(sum(control_roi,3));
+    this_image(:,:,3) = mean(mean(mean(images))).*(sum(test_roi,3));
+
+
     handles.im = imagesc(this_image);
 
-    set(handles.fig,'Name',['[' mat2str(min(min(this_image))) '-' mat2str(max(max(this_image))) ']'])
+    % set(handles.fig,'Name',['[' mat2str(min(min(this_image))) '-' mat2str(max(max(this_image))) ']'])
 
     % try to pick a nice colourmap
     cmax = max(.9*max(max(max(images))));
