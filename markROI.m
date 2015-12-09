@@ -14,6 +14,7 @@ nframes = [];
 cmax = 255;
 cmin = 0;
 current_file = 1;
+m = []; % matfile handle
 
 control_roi = [];
 test_roi = [];
@@ -61,24 +62,24 @@ end
 function pickROI(src,~)
     h = imfreehand;
     if any(strfind(src.String,'ontrol'))
-        control_roi(:,:,end+1) = createMask(h,handles.im);
+        m.control_roi(:,:,end+1) = createMask(h,handles.im);
     else
-        test_roi(:,:,end+1) = createMask(h,handles.im);
+        m.test_roi(:,:,end+1) = createMask(h,handles.im);
     end
 
-    % save to file
-    save([folder_name allfiles(current_file).name],'control_roi','test_roi','-append');
+    % % save to file
+    % save([folder_name allfiles(current_file).name],'control_roi','test_roi','-append');
 
 end
 
 function maxProj(~,~)
-    temp = max(images,[],3);
+    temp = std(m.images(:,:,1:50:get(handles.scrubber,'Max')),[],3);
     handles.im = imagesc(temp);
     caxis([min(min(temp)) max(max(temp))])
 end
 
 function stdProj(~,~)
-    temp = std(images,[],3);
+    temp = std(m.images(:,:,1:50:get(handles.scrubber,'Max')),[],3);
     handles.im = imagesc(temp);
     caxis([min(min(temp)) max(max(temp))])
 end
@@ -88,7 +89,7 @@ function loadFile(src,event)
     images = []; 
     control_roi = [];
     test_roi = [];
-    set(handles.fig,'Name','Loading...')
+    set(handles.fig,'Name','markROI')
     if src ~= 1
         if strcmp(src.String,'>')
             load_this = current_file + 1;
@@ -112,25 +113,26 @@ function loadFile(src,event)
         set(handles.prev_file,'Enable','on')
     end
 
-    temp = load([folder_name allfiles(load_this).name]);
+    m = matfile([folder_name allfiles(load_this).name]);
     disp([folder_name allfiles(load_this).name]);
-    images = temp.images;
+    % load the first frame
+    images = m.images(:,:,1);
 
     % determine the number of frames
-    nframes = size(images,3);
+    [~,~,nframes] = size(m,'images');
     set(handles.scrubber,'Min',1,'Max',nframes,'Value',1);
 
     set(handles.ax1,'XLim',[1 size(images,1)],'YLim',[1 size(images,2)])
 
     % show pre-existing ROIs is present
-    if any(find(strcmp('control_roi',fieldnames(temp))))
-        control_roi = temp.control_roi;
+    if any(find(strcmp('control_roi',fieldnames(m))))
+        control_roi = m.control_roi;
     else
         control_roi = zeros(size(images,2),size(images,2),0);
     end
 
-    if any(find(strcmp('test_roi',fieldnames(temp))))
-        test_roi = temp.test_roi;
+    if any(find(strcmp('test_roi',fieldnames(m))))
+        test_roi = m.test_roi;
     else
         test_roi = zeros(size(images,2),size(images,2),0);
     end
@@ -141,7 +143,7 @@ function loadFile(src,event)
 end
 
 function showFrame(~,~)
-    this_image = images(:,:,ceil(get(handles.scrubber,'Value')));
+    this_image = m.images(:,:,ceil(get(handles.scrubber,'Value')));
 
     this_image = this_image -  min(min(min(images)));
     this_image = this_image/( max(max(max(images)))- min(min(min(images))));
@@ -149,9 +151,10 @@ function showFrame(~,~)
     % mask out the control and test rois, if any.
     this_image(:,:,2) = (mean(mean(this_image(:,:,1)))).*(sum(control_roi,3));
     this_image(:,:,3) = (mean(mean(this_image(:,:,1)))).*(sum(test_roi,3));
+    this_image(:,:,2) = .5*this_image(:,:,2) + .5*(mean(mean(this_image(:,:,1)))).*(sum(test_roi,3));
 
     this_image = this_image - min(min(min(this_image)));
-    this_image = this_image/max(max(max(this_image)));
+    this_image = 1.1*this_image/max(max(max(this_image)));
 
     handles.im = imagesc(this_image);
 end
