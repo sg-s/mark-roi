@@ -147,19 +147,13 @@ function showFrame(~,~)
     this_image = this_image/( max(max(max(images)))- min(min(min(images))));
 
     % mask out the control and test rois, if any.
-    this_image(:,:,2) = mean(mean(mean(images))).*(sum(control_roi,3));
-    this_image(:,:,3) = mean(mean(mean(images))).*(sum(test_roi,3));
+    this_image(:,:,2) = (mean(mean(this_image(:,:,1)))).*(sum(control_roi,3));
+    this_image(:,:,3) = (mean(mean(this_image(:,:,1)))).*(sum(test_roi,3));
 
+    this_image = this_image - min(min(min(this_image)));
+    this_image = this_image/max(max(max(this_image)));
 
     handles.im = imagesc(this_image);
-
-    % set(handles.fig,'Name',['[' mat2str(min(min(this_image))) '-' mat2str(max(max(this_image))) ']'])
-
-    % try to pick a nice colourmap
-    cmax = max(.9*max(max(max(images))));
-    cmin = min(min(min(images)));
-    caxis([cmin cmax]);
-
 end
 
 end
