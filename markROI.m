@@ -11,8 +11,6 @@ function [] = markROI()
 handles = struct;
 images = [];
 nframes = [];
-cmax = 255;
-cmin = 0;
 current_file = 1;
 m = []; % matfile handle
 
@@ -62,9 +60,21 @@ end
 function pickROI(src,~)
     h = imfreehand;
     if any(strfind(src.String,'ontrol'))
-        m.control_roi(:,:,end+1) = createMask(h,handles.im);
+        try
+            m.control_roi(:,:,end+1) = createMask(h,handles.im);
+        catch
+            [a,b] = size(createMask(h,handles.im));
+            m.control_roi = logical(zeros(a,b,2));
+            m.control_roi(:,:,1) = createMask(h,handles.im);
+        end
     else
-        m.test_roi(:,:,end+1) = createMask(h,handles.im);
+        try
+            m.test_roi(:,:,end+1) = createMask(h,handles.im);
+        catch
+            [a,b] = size(createMask(h,handles.im));
+            m.test_roi = logical(zeros(a,b,2));
+            m.test_roi(:,:,1) = createMask(h,handles.im);
+        end
     end
 
     % % save to file
@@ -84,7 +94,7 @@ function stdProj(~,~)
     caxis([min(min(temp)) max(max(temp))])
 end
     
-function loadFile(src,event)
+function loadFile(src,~)
     cla(handles.ax1)
     images = []; 
     control_roi = [];
@@ -113,7 +123,7 @@ function loadFile(src,event)
         set(handles.prev_file,'Enable','on')
     end
 
-    m = matfile([folder_name allfiles(load_this).name]);
+    m = matfile([folder_name allfiles(load_this).name],'Writable',true);
     disp([folder_name allfiles(load_this).name]);
     % load the first frame
     images = m.images(:,:,1);
@@ -123,19 +133,6 @@ function loadFile(src,event)
     set(handles.scrubber,'Min',1,'Max',nframes,'Value',1);
 
     set(handles.ax1,'XLim',[1 size(images,1)],'YLim',[1 size(images,2)])
-
-    % show pre-existing ROIs is present
-    if any(find(strcmp('control_roi',fieldnames(m))))
-        control_roi = m.control_roi;
-    else
-        control_roi = zeros(size(images,2),size(images,2),0);
-    end
-
-    if any(find(strcmp('test_roi',fieldnames(m))))
-        test_roi = m.test_roi;
-    else
-        test_roi = zeros(size(images,2),size(images,2),0);
-    end
 
     showFrame;
 
@@ -149,9 +146,17 @@ function showFrame(~,~)
     this_image = this_image/( max(max(max(images)))- min(min(min(images))));
 
     % mask out the control and test rois, if any.
-    this_image(:,:,2) = (mean(mean(this_image(:,:,1)))).*(sum(control_roi,3));
-    this_image(:,:,3) = (mean(mean(this_image(:,:,1)))).*(sum(test_roi,3));
-    this_image(:,:,2) = .5*this_image(:,:,2) + .5*(mean(mean(this_image(:,:,1)))).*(sum(test_roi,3));
+    try
+        this_image(:,:,2) = (mean(mean(this_image(:,:,1)))).*(sum(m.control_roi,3));
+    catch
+        this_image(:,:,2) = 0*this_image(:,:,1);
+    end
+    try
+        this_image(:,:,3) = (mean(mean(this_image(:,:,1)))).*(sum(m.test_roi,3));
+        this_image(:,:,2) = .5*this_image(:,:,2) + .5*(mean(mean(this_image(:,:,1)))).*(sum(m.test_roi,3));
+    catch
+        this_image(:,:,3) = 0*this_image(:,:,1);
+    end
 
     this_image = this_image - min(min(min(this_image)));
     this_image = 1.1*this_image/max(max(max(this_image)));
