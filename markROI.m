@@ -1,5 +1,8 @@
 % markROI.m
-% marks rois in an image sequecne
+% marks rois in an image sequence
+% will work on .mat files that contain a variable called "images" that is a 3D matrix (monochrome images only)
+% .mat files should be v7.3 or later, as markROI only partially loads files to speed up the UI
+% 
 % 
 % created by Srinivas Gorur-Shandilya at 12:17 , 03 December 2015. Contact me at http://srinivas.gs/contact/
 % 
@@ -83,7 +86,7 @@ function pickROI(src,~)
 end
 
 function maxProj(~,~)
-    temp = std(m.images(:,:,1:50:get(handles.scrubber,'Max')),[],3);
+    temp = max(m.images(:,:,1:50:get(handles.scrubber,'Max')),[],3);
     handles.im = imagesc(temp);
     caxis([min(min(temp)) max(max(temp))])
 end
@@ -130,7 +133,7 @@ function loadFile(src,~)
 
     % determine the number of frames
     [~,~,nframes] = size(m,'images');
-    set(handles.scrubber,'Min',1,'Max',nframes,'Value',1);
+    set(handles.scrubber,'Min',1,'Max',nframes,'Value',round(nframes/2));
 
     set(handles.ax1,'XLim',[1 size(images,1)],'YLim',[1 size(images,2)])
 
