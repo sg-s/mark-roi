@@ -12,13 +12,9 @@ function [] = markROI()
 
 % file-wide variables
 handles = struct;
-images = [];
 nframes = [];
 current_file = 1;
 m = []; % matfile handle
-
-control_roi = [];
-test_roi = [];
 
 % first, get the directory we are going to work in
 folder_name = uigetdir;
@@ -99,9 +95,6 @@ end
     
 function loadFile(src,~)
     cla(handles.ax1)
-    images = []; 
-    control_roi = [];
-    test_roi = [];
     set(handles.fig,'Name','markROI')
     if src ~= 1
         if strcmp(src.String,'>')
@@ -128,14 +121,12 @@ function loadFile(src,~)
 
     m = matfile([folder_name allfiles(load_this).name],'Writable',true);
     disp([folder_name allfiles(load_this).name]);
-    % load the first frame
-    images = m.images(:,:,1);
 
     % determine the number of frames
-    [~,~,nframes] = size(m,'images');
+    [a,b,nframes] = size(m,'images');
     set(handles.scrubber,'Min',1,'Max',nframes,'Value',round(nframes/2));
 
-    set(handles.ax1,'XLim',[1 size(images,1)],'YLim',[1 size(images,2)])
+    set(handles.ax1,'XLim',[1 a],'YLim',[1 b])
 
     showFrame;
 
@@ -144,9 +135,6 @@ end
 
 function showFrame(~,~)
     this_image = m.images(:,:,ceil(get(handles.scrubber,'Value')));
-
-    this_image = this_image -  min(min(min(images)));
-    this_image = this_image/( max(max(max(images)))- min(min(min(images))));
 
     % mask out the control and test rois, if any.
     try
