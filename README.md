@@ -1,6 +1,6 @@
 # markROI
 
-Simple (<100LoC) UI to mark ROIs in image sequences written in MATLAB. 
+Simple (<100 lines of code) UI to mark ROIs in image sequences written in MATLAB. This is built as a boilerplate for you to use in your own project.
 
 ## Features
 
@@ -11,7 +11,7 @@ Simple (<100LoC) UI to mark ROIs in image sequences written in MATLAB.
 ## Assumptions
 
 * .mat files have a variable called "images"
-* .mat files are v7.3 or later. use [convertMATFile2To73](https://github.com/sg-s/srinivas.gs_mtools/blob/master/convertMATFileTo73.m) to convert your .mat files if needed. 
+* .mat files are v7.3 or later. use [convertMATFileTo73](https://github.com/sg-s/srinivas.gs_mtools/blob/master/src/file-tools/convertMATFileTo73.m) to convert your .mat files if needed. 
 * You want to mark some "control" ROIs and some "test" ROIs
 
 ## Hacking 
