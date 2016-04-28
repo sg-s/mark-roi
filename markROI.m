@@ -23,6 +23,8 @@ folder_name = [folder_name oss];
 % get all image files in this
 allfiles = dir([folder_name 'video_*.mat']);
 
+assert(length(allfiles)>0,'No files found! Make sure they being with "video_"')
+
 % make the UI
 makeUI;
 
