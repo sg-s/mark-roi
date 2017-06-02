@@ -15,15 +15,16 @@ handles = struct;
 nframes = [];
 current_file = 1;
 m = []; % matfile handle
+variable_name = 'images';
 
 % first, get the directory we are going to work in
-folder_name = uigetdir;
+folder_name = uigetdir(pwd,'Choose a folder containing .mat files of the videos you want to work on');
 folder_name = [folder_name oss];
 
 % get all image files in this
-allfiles = dir([folder_name 'video_*.mat']);
+allfiles = dir([folder_name '*.mat']);
 
-assert(length(allfiles)>0,'No files found! Make sure they being with "video_"')
+assert(length(allfiles)>0,'No files found! Make you are in a folder with some .mat files"')
 
 % make the UI
 makeUI;
@@ -84,13 +85,13 @@ function pickROI(src,~)
 end
 
 function maxProj(~,~)
-    temp = max(m.images(:,:,1:50:get(handles.scrubber,'Max')),[],3);
+    temp = max(m.(variable_name)(:,:,1:50:get(handles.scrubber,'Max')),[],3);
     handles.im = imagesc(temp);
     caxis([min(min(temp)) max(max(temp))])
 end
 
 function stdProj(~,~)
-    temp = std(m.images(:,:,1:50:get(handles.scrubber,'Max')),[],3);
+    temp = std(m.(variable_name)(:,:,1:50:get(handles.scrubber,'Max')),[],3);
     handles.im = imagesc(temp);
     caxis([min(min(temp)) max(max(temp))])
 end
@@ -121,11 +122,28 @@ function loadFile(src,~)
         set(handles.prev_file,'Enable','on')
     end
 
+    % check if the current file is v7.3; if not, convert it
+    if findMATFileVersion([folder_name allfiles(load_this).name]) ~= 7.3
+        convertMATFileTo73([folder_name allfiles(load_this).name])
+    end
+
+
     m = matfile([folder_name allfiles(load_this).name],'Writable',true);
-    disp([folder_name allfiles(load_this).name]);
+    set(handles.fig,'Name',allfiles(load_this).name);
+
+    % figure out which variable to load
+    variable_names = whos(m);
+    if length(variable_names) == 1
+        variable_name = variable_names(1).name;
+    else
+        % only retain 3D arrays
+        variable_names = variable_names(cellfun(@length,{variable_names.size}) == 3);
+        % pick the largest one
+        variable_name = variable_names(find([variable_names.bytes] == max([variable_names.bytes]))).name;
+    end
 
     % determine the number of frames
-    [a,b,nframes] = size(m,'images');
+    [a,b,nframes] = size(m,variable_name);
     set(handles.scrubber,'Min',1,'Max',nframes,'Value',round(nframes/2));
 
     set(handles.ax1,'XLim',[1 a],'YLim',[1 b])
@@ -136,7 +154,7 @@ function loadFile(src,~)
 end
 
 function showFrame(~,~)
-    this_image = m.images(:,:,ceil(get(handles.scrubber,'Value')));
+    this_image = m.(variable_name)(:,:,ceil(get(handles.scrubber,'Value')));
 
     % mask out the control and test rois, if any.
     try
