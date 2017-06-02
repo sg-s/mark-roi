@@ -54,10 +54,47 @@ function makeUI
 
     handles.std_proj = uicontrol(handles.fig,'Units','normalized','Position',[.25 .15 .15 .05],'Style', 'pushbutton','FontSize',12,'String','Std. Proj.','Callback',@stdProj);
 
+    handles.timeseries_button = uicontrol(handles.fig,'Units','normalized','Position',[.05 .09 .3 .05],'Style', 'togglebutton','FontSize',12,'String','Show time series','Callback',@drawOrEraseTimeSeriesPlot);
+
     handles.mark_control = uicontrol(handles.fig,'Units','normalized','Position',[.65 .15 .15 .05],'Style', 'pushbutton','FontSize',12,'String','+Control ROI.','Callback',@pickROI);
     handles.mark_test = uicontrol(handles.fig,'Units','normalized','Position',[.80 .15 .15 .05],'Style', 'pushbutton','FontSize',12,'String','+Test ROI','Callback',@pickROI);
 
 
+end
+
+function drawOrEraseTimeSeriesPlot(src,~)
+    if src.Value == 1
+        src.String = 'Hide time series';
+        % now make the UI for the time series
+        handles.timeseries_fig = figure('outerposition',[700 300 800 500],'NumberTitle','off','Name','Time series');
+        handles.timeseries_ax = axes(handles.timeseries_fig);
+        hold(handles.timeseries_ax,'on')
+        xlabel(handles.timeseries_ax,'Frame #')
+        ylabel(handles.timeseries_ax,'Intensity (a.u.)')
+        set(handles.timeseries_ax,'XLim',[1 nframes])
+
+        % plot the time series
+        variable_names = whos(m);
+        I = m.(variable_name);
+        if any(strcmp({variable_names.name},'control_roi'))
+            control_roi = m.control_roi;
+            for i = 1:size(control_roi,3)
+                plot(handles.timeseries_ax,squeeze(sum(sum(repmat(control_roi(:,:,i),1,1,nframes).*I))),'k');
+            end
+        end
+        if any(strcmp({variable_names.name},'test_roi'))
+            test_roi = m.test_roi;
+            for i = 1:size(test_roi,3)
+                plot(handles.timeseries_ax,squeeze(sum(sum(repmat(test_roi(:,:,i),1,1,nframes).*I))),'r');
+            end
+        end
+    else
+        src.String = 'Show time series';
+        try
+            delete(handles.timeseries_fig)
+        catch
+        end
+    end
 end
 
 
@@ -173,8 +210,8 @@ function showFrame(~,~)
 
     this_image = this_image - min(min(min(this_image)));
     this_image = 1.1*this_image/max(max(max(this_image)));
-
     handles.im = imagesc(this_image);
+
 end
 
 end
