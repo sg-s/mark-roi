@@ -6,19 +6,20 @@ Simple (<100 lines of code) UI to mark ROIs in image sequences written in MATLAB
 
 ## Features
 
-* lets your mark ROIs
-* works
-* fast. loading images is instantaneous, no matter how big the files are
+* Lets your mark ROIs
+* Works
+* Fast. loading images is instantaneous, no matter how big the files are
+* Automatically convert .mat files into HDF5 files for faster operations. 
+* Intelligently figures out your data structure within a .mat file, no matter how many variables you have there. 
 
 ## Assumptions
 
-* .mat files have a variable called "images"
-* .mat files are v7.3 or later. use [convertMATFileTo73](https://github.com/sg-s/srinivas.gs_mtools/blob/master/src/file-tools/convertMATFileTo73.m) to convert your .mat files if needed. 
+* Your images are stored in a 3D matrix in a .mat file. 
 * You want to mark some "control" ROIs and some "test" ROIs
 
 ## Hacking 
 
-The parts you probably want to change to re-purpose this to your use are as follows:
+`markROI` is written as a single-file function, where different sub-functions make the UI, load and plot the image, etc. The parts you probably want to change to re-purpose this to your use are as follows:
 
 ### loadFile
 
