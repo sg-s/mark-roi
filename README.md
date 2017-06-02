@@ -1,5 +1,7 @@
 # markROI
 
+![](images/hero.png)
+
 Simple (<100 lines of code) UI to mark ROIs in image sequences written in MATLAB. This is built as a boilerplate for you to use in your own project.
 
 ## Features

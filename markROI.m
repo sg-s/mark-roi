@@ -23,6 +23,8 @@ folder_name = [folder_name oss];
 
 % get all image files in this
 allfiles = dir([folder_name '*.mat']);
+% remove files that begin with a dot
+allfiles(cellfun(@(x) strcmp(x(1),'.'),{allfiles.name})) = [];
 
 assert(length(allfiles)>0,'No files found! Make you are in a folder with some .mat files"')
 
