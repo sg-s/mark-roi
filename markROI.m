@@ -8,35 +8,52 @@
 % 
 % This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. 
 % To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/4.0/.ts
-function [] = markROI()
+classdef markROI < handle
 
-% file-wide variables
-handles = struct;
-nframes = [];
-current_file = 1;
-m = []; % matfile handle
-variable_name = 'images';
-
-% first, get the directory we are going to work in
-folder_name = uigetdir(pwd,'Choose a folder containing .mat files of the videos you want to work on');
-folder_name = [folder_name oss];
-
-% get all image files in this
-allfiles = dir([folder_name '*.mat']);
-% remove files that begin with a dot
-allfiles(cellfun(@(x) strcmp(x(1),'.'),{allfiles.name})) = [];
-
-assert(length(allfiles)>0,'No files found! Make you are in a folder with some .mat files"')
-
-% make the UI
-makeUI;
-
-% load the first file
-loadFile(1);
+properties
+    handles = struct;
+    nframes = [];
+    current_file = 1;
+    m = []; % matfile handle
+    variable_name = 'images';
+    folder_name
+    allfiles
 
 
 
-function makeUI
+end % end properties 
+
+
+methods
+
+    function markROI(m)
+
+        % first, get the directory we are going to work in
+        folder_name = uigetdir(pwd,'Choose a folder containing .mat files of the videos you want to work on');
+        m.folder_name = [folder_name oss];
+
+        % get all image files in this
+        m.allfiles = dir([m.folder_name '*.mat']);
+        % remove files that begin with a dot
+        m.allfiles(cellfun(@(x) strcmp(x(1),'.'),{m.allfiles.name})) = [];
+
+        assert(length(m.allfiles)>0,'No files found! Make you are in a folder with some .mat files"')
+
+        % make the UI
+        m.makeUI;
+
+        % load the first file
+        loadFile(m,1);
+
+    end % end creator function 
+
+end % end methods 
+
+
+
+
+
+function makeUI(m,~,~)
     handles.fig = figure('outerposition',[100 50 600 800],'NumberTitle','off','Name','markROI','Toolbar','none','Menubar','none');
     handles.ax1 = axes('parent',handles.fig,'Position',[0.05 0.3 0.9 0.65]); hold on
     colormap hot
