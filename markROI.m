@@ -266,6 +266,7 @@ methods
                 m.matfile_handle.test_roi(:,:,1) = createMask(h,m.handles.im);
             end
         end
+        delete(h)
 
     end % end pick ROI
 
