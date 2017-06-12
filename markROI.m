@@ -131,7 +131,12 @@ methods
             % only retain 3D arrays
             variable_names = variable_names(cellfun(@length,{variable_names.size}) == 3);
             % pick the largest one
-            m.variable_name = variable_names(find([variable_names.bytes] == max([variable_names.bytes]))).name;
+            try
+                m.variable_name = variable_names(find([variable_names.bytes] == max([variable_names.bytes]))).name;
+            catch
+                m.handles.im.CData = zeros(50,50,1);
+                return
+            end
         end
 
         % determine the number of frames
