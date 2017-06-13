@@ -20,8 +20,8 @@ properties
     allfiles
 
     % for activity-correlated imaging
-    pre_stimulus_epoch = [40 60];
-    stimulus_epoch = [60 120];
+    pre_stimulus_epoch = [90 100];
+    stimulus_epoch = [100 110];
     post_stimulus_epoch
     use_time = true; % epochs defines by time vector, not frame numbers?
     time
@@ -121,7 +121,7 @@ methods
 
 
         m.matfile_handle = matfile([m.folder_name m.allfiles(load_this).name],'Writable',true);
-        set(handles.fig,'Name',m.allfiles(load_this).name);
+        %set(handles.fig,'Name',m.allfiles(load_this).name);
 
         % figure out which variable to load
         variable_names = whos(m.matfile_handle);
