@@ -152,65 +152,11 @@ methods
 
     function showACI(m,~,~)
         assert(~isempty(m.stimulus_epoch),'You need to specify the stimulus epoch')
-        assert(length(m.stimulus_epoch)==2,'Stimulus epoch should be a two element vector, in frame #')
         assert(~isempty(m.pre_stimulus_epoch),'You need to specify the pre-stimulus epoch')
-        assert(length(m.pre_stimulus_epoch)==2,'Pre-Stimulus epoch should be a two element vector, in frame #')
 
         images = double(m.matfile_handle.(m.variable_name));
 
-        if m.use_time
-            time = m.matfile_handle.time;
-            a1 = find(time > m.pre_stimulus_epoch(1),1,'first');
-            z1 = find(time > m.pre_stimulus_epoch(2),1,'first');
-            a2 = find(time > m.stimulus_epoch(1),1,'first');
-            z2 = find(time > m.stimulus_epoch(2),1,'first');
-        else
-            error('not coded')
-        end
-
-
-        for i = 1:size(images,1)
-            for j = 1:size(images,2)
-                % divide by pre-stimulus flourescence
-                baseline = mean(images(i,j,a1:z1));
-                images(i,j,:) = images(i,j,:)./baseline;
-            end
-        end
-
-
-        A = squeeze(0*images(:,:,1));
-
-        for i = 1:size(images,1)
-            for j = 1:size(images,2)
-                A(i,j) = mean(images(i,j,a2:z2));
-            end
-        end
-
-        % create a false color image
-        I = zeros(size(images,1),size(images,2),3);
-        mI = mean(images,3);
-        mI = mI - min(min(mI));
-        mI = mI/max(max(mI));
-
-        for i = 1:3
-            I(:,:,i) = mI;
-        end
-        I = 1-I;
-
-        A_lo = A; A_lo(A_lo>1) = 1;
-        A_hi = A; A_hi(A_hi<1) = 1;
-        A_hi = A_hi - 1;
-        A_hi = A_hi/max(max(A_hi));
-        A_lo = 1- A_lo;
-        A_lo = A_lo/max(max(A_lo));
-
-        A_lo = 1-A_lo;
-        A_hi = 1-A_hi;
-
-        I(:,:,1) = I(:,:,1).*A_lo;
-        I(:,:,2) = I(:,:,2).*A_lo;
-        I(:,:,3) = I(:,:,3).*A_hi;
-        I(:,:,2) = I(:,:,2).*A_hi;
+        I = ACI(m.time,images,m.stimulus_epoch,m.pre_stimulus_epoch);
 
         m.handles.im.CData = I;
 
